@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>ioBroker_NewGen.Web</RootNamespace>
+    <Version>1.0.1</Version>
+    <AssemblyName>ioBroker-NewGen.web-$(Version)</AssemblyName>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <FileVersion>1.0.1.0</FileVersion>
+    <InformationalVersion>1.0.1</InformationalVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>bin\</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="lib\**" />
+    <LibDll Include="lib\*.dll" />
+    <Reference Include="@(LibDll)">
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Erzeugt die Konstante WebVersion.Value aus <Version>, damit die Version nur in dieser Datei gepflegt wird. -->
+  <Target Name="GenerateWebVersion" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <WebVersionFile>$(IntermediateOutputPath)WebVersion.g.cs</WebVersionFile>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(WebVersionFile)"
+                      Lines="namespace ioBroker_NewGen.Web%3B;internal static class WebVersion;{;    public const string Value = &quot;$(Version)&quot;%3B;}"
+                      Overwrite="true"
+                      WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Compile Include="$(WebVersionFile)" />
+    </ItemGroup>
+  </Target>
+</Project>

@@ -20,6 +20,8 @@ public sealed class WebAdapter : DeviceAdapterBase
 
     public override string Name => "web";
 
+    public string? Version => WebVersion.Value;
+
     protected override Task OnStartAsync(CancellationToken cancellationToken)
     {
         Context.WebEndpoints.Register(

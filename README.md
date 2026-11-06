@@ -1,5 +1,7 @@
 # ioBroker-NewGen Web Adapter
 
+> **Unofficial community project.** This project is not affiliated with or endorsed by the official ioBroker project.
+
 Eigenständiger nativer C#-Adapter für HTTP- und WebSocket-Endpunkte.
 
 Der Adapter besitzt den einzigen Web-/WebSocket-Listener. Native und Legacy-
@@ -15,7 +17,7 @@ müssen passende Host-Verträge bereitgestellt werden:
 ```powershell
 dotnet build WebAdapter.csproj `
   -p:HostRuntimePath=..\..\ioBroker-NewGen.runtime\bin\Debug\net9.0\ioBroker-NewGen.dll `
-  -p:RsevUtilitiesPath=..\..\ioBroker-NewGen.runtime\libs\RSEV.Utilities.dll
+  -p:RsevUtilitiesPath=..\..\ioBroker-NewGen.runtime\lib\RSEV.Utilities.dll
 ```
 
 Für einen eigenständigen Checkout können die beiden DLLs alternativ nach
