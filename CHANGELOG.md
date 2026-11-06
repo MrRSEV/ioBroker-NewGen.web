@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2 – 2026-11-06
+
+- Neu gebaut gegen Runtime `2.1.1-beta` (Adapter binden an den exakten Runtime-Assembly-Namen); keine funktionalen Änderungen.
+
 ## 1.0.1 – 2026-11-06
 
 - Der Adapter meldet sich jetzt mit seiner Version (aus
