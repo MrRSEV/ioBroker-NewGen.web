@@ -127,6 +127,9 @@ public sealed class WebAdapter : DeviceAdapterBase
         {
             context.Response.StatusCode = 503;
         }
+        catch (Exception ex) when (IsClientDisconnected(ex))
+        {
+        }
         catch (Exception ex)
         {
             Context.RuntimeContext.Logger.LogError($"[WebAdapter] Anfrage fehlgeschlagen: {ex}");
@@ -157,12 +160,23 @@ public sealed class WebAdapter : DeviceAdapterBase
         var route = context.Request.Url?.AbsolutePath ?? "/";
         if (context.Request.IsWebSocketRequest)
         {
+            if (!Context.WebEndpoints.CanDispatch(route, WebEndpointKind.WebSocket))
+            {
+                var missingRouteResponse = WebEndpointResponse.Text(404, "WebSocket endpoint not found.");
+                context.Response.StatusCode = missingRouteResponse.StatusCode;
+                context.Response.ContentType = "text/plain; charset=utf-8";
+                context.Response.ContentLength64 = missingRouteResponse.Body.Length;
+                await context.Response.OutputStream.WriteAsync(missingRouteResponse.Body, cancellationToken);
+                return;
+            }
+
             var socketContext = await context.AcceptWebSocketAsync(null);
             var session = new HttpListenerWebSocketSession(socketContext.WebSocket);
             var websocketResponse = await Context.WebEndpoints.DispatchAsync(new WebEndpointRequest
             {
                 Route = route,
                 Method = context.Request.HttpMethod,
+                Query = context.Request.Url?.Query.TrimStart('?') ?? string.Empty,
                 Headers = ReadHeaders(context.Request.Headers),
                 IsWebSocket = true,
                 WebSocket = session
@@ -180,6 +194,7 @@ public sealed class WebAdapter : DeviceAdapterBase
         {
             Route = route,
             Method = context.Request.HttpMethod,
+            Query = context.Request.Url?.Query.TrimStart('?') ?? string.Empty,
             Headers = ReadHeaders(context.Request.Headers),
             Body = body.ToArray()
         }, cancellationToken);
@@ -199,6 +214,24 @@ public sealed class WebAdapter : DeviceAdapterBase
         => headers.AllKeys
             .Where(key => key is not null)
             .ToDictionary(key => key!, key => headers[key!] ?? string.Empty, StringComparer.OrdinalIgnoreCase);
+
+    internal static bool IsClientDisconnected(Exception exception)
+    {
+        for (Exception? current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is HttpListenerException { ErrorCode: 64 or 995 })
+            {
+                return true;
+            }
+
+            if (current is WebSocketException { WebSocketErrorCode: WebSocketError.ConnectionClosedPrematurely })
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private static string BuildPrefix(string host, int port)
     {
@@ -286,7 +319,13 @@ internal sealed class HttpListenerWebSocketSession : IWebSocketSession
     {
         if (_socket.State is WebSocketState.Open or WebSocketState.CloseReceived)
         {
-            await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "closed", cancellationToken);
+            try
+            {
+                await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "closed", cancellationToken);
+            }
+            catch (Exception ex) when (WebAdapter.IsClientDisconnected(ex))
+            {
+            }
         }
     }
 }

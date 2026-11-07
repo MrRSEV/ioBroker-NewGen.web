@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.4 – 2026-11-07
+
+- Query-Strings aus HTTP- und WebSocket-Anfragen werden an die registrierten
+  Endpunkte weitergereicht.
+- Vorhandene WebSocket-Routen werden vor dem Upgrade geprüft; nicht registrierte
+  Routen werden als HTTP-404 abgewiesen. Erwartete Verbindungsabbrüche beim
+  Schreiben oder Schließen werden nicht als Serverfehler protokolliert.
+- Neu gebaut gegen Runtime `2.4.0-beta`.
+
 ## 1.0.2 – 2026-11-06
 
 - Neu gebaut gegen Runtime `2.1.1-beta` (Adapter binden an den exakten Runtime-Assembly-Namen); keine funktionalen Änderungen.
